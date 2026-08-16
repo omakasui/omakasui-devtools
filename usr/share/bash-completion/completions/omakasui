@@ -1,0 +1,56 @@
+# Bash completion for omakasui.
+#
+# Candidates are derived at completion time from `omakasui commands --all --json`,
+# so this file never needs updating when commands are added, renamed, or removed.
+#
+# Debian packaging installs this at:
+#   /usr/share/bash-completion/completions/omakasui
+# where the bash-completion package loads it automatically — no sourcing needed.
+
+_omakasui() {
+  local cur prev words cword
+
+  if type _init_completion &>/dev/null; then
+    _init_completion || return
+  else
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD - 1]}"
+    words=("${COMP_WORDS[@]}")
+    cword=$COMP_CWORD
+  fi
+
+  command -v omakasui >/dev/null 2>&1 || return
+  command -v jq >/dev/null 2>&1 || return
+
+  local -a prefix=("${words[@]:1:cword-1}")
+  local routes
+  routes=$(omakasui commands --all --json 2>/dev/null | jq -r '.commands[].routes[]') || return
+
+  local -a candidates=()
+  local route
+  while IFS= read -r route; do
+    [[ -n $route ]] || continue
+    route="${route#omakasui }"
+    local -a rwords=($route)
+    local i match=1
+
+    for ((i = 0; i < ${#prefix[@]}; i++)); do
+      if [[ ${rwords[i]:-} != "${prefix[i]}" ]]; then
+        match=0
+        break
+      fi
+    done
+
+    if (( match == 1 )) && (( ${#rwords[@]} > ${#prefix[@]} )); then
+      candidates+=("${rwords[${#prefix[@]}]}")
+    fi
+  done <<<"$routes"
+
+  # `commands` is a builtin subcommand, not backed by a omakasui-* binary,
+  # so it never shows up in the JSON route list.
+  (( ${#prefix[@]} == 0 )) && candidates+=("commands")
+
+  COMPREPLY=($(compgen -W "$(printf '%s\n' "${candidates[@]}" | sort -u)" -- "$cur"))
+}
+
+complete -F _omakasui omakasui

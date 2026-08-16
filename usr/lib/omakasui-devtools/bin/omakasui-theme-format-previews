@@ -1,0 +1,24 @@
+#!/bin/bash
+# omakasui:summary=Resize and optimize preview images across all themes
+# omakasui:args=<themes directory (f.e. ~/.local/share/omakub/themes)>
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: omakasui theme format previews <themes directory>" >&2
+  exit 1
+fi
+
+THEMES_DIR="$1"
+IMAGE_TYPES=("preview.png" "preview-unlock.png")
+
+for dir in "$THEMES_DIR"/*/; do
+  [[ -d $dir ]] || continue
+
+  for img_type in "${IMAGE_TYPES[@]}"; do
+    if [[ -f "${dir}${img_type}" ]]; then
+      echo "Processing: ${dir}${img_type}"
+      convert "${dir}${img_type}" -resize 1800x -strip -interlace Plane -quality 85 "${dir}${img_type%.*}.png"
+    else
+      echo "Skipped (no ${img_type}): $dir"
+    fi
+  done
+done

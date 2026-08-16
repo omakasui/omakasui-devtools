@@ -1,0 +1,59 @@
+#compdef omakasui
+#
+# Zsh completion for omakasui.
+#
+# Candidates (and their descriptions) are derived at completion time from
+# `omakasui commands --all --json`, so this file never needs updating when
+# commands are added, renamed, or removed.
+#
+# Debian packaging installs this at:
+#   /usr/share/zsh/vendor-completions/_omakasui
+# which is in fpath by default on Debian/Ubuntu zsh — no sourcing needed,
+# just `compinit` (already run by most zsh setups).
+
+_omakasui() {
+  command -v omakasui >/dev/null 2>&1 || return 1
+  command -v jq >/dev/null 2>&1 || return 1
+
+  local -a prefix
+  prefix=("${words[@]:1:$((CURRENT - 2))}")
+
+  local json
+  json=$(omakasui commands --all --json 2>/dev/null) || return 1
+
+  local -a lines
+  lines=("${(@f)$(jq -r '.commands[] | .routes[] as $r | ($r | sub("^omakasui "; "")) + "\t" + .summary' <<<"$json")}")
+
+  local -a candidates
+  local line route summary
+  local -a rwords
+
+  for line in "${lines[@]}"; do
+    route="${line%%$'\t'*}"
+    summary="${line#*$'\t'}"
+    rwords=(${=route})
+
+    local match=1 i
+    for ((i = 1; i <= ${#prefix}; i++)); do
+      if [[ "${rwords[i]}" != "${prefix[i]}" ]]; then
+        match=0
+        break
+      fi
+    done
+
+    if (( match == 1 )) && (( ${#rwords} > ${#prefix} )); then
+      candidates+=("${rwords[$((${#prefix} + 1))]}:${summary}")
+    fi
+  done
+
+  # `commands` is a builtin subcommand, not backed by a omakasui-* binary,
+  # so it never shows up in the JSON route list.
+  (( ${#prefix} == 0 )) && candidates+=("commands:List commands known to the Omakasui command center")
+
+  local -aU uniq_candidates
+  uniq_candidates=(${(u)candidates})
+
+  _describe -t omakasui-commands 'omakasui command' uniq_candidates
+}
+
+_omakasui "$@"

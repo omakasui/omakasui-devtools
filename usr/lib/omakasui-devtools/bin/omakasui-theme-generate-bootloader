@@ -1,0 +1,70 @@
+#!/bin/bash
+# omakasui:summary=Generate themed bootloader.png backgrounds for all themes (using unlock.png as logo)
+# omakasui:args=<themes directory (f.e. ~/.local/share/omakub/themes)> [output file name, default: bootloader.png]
+
+set -o pipefail
+
+SCRIPT_DIR=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")" && pwd)
+source "$SCRIPT_DIR/lib/theme-colors.sh"
+
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+  echo "Usage: omakasui theme generate bootloader <themes directory> [output file name]" >&2
+  exit 1
+fi
+
+THEMES_DIR="$1"
+OUTPUT_FILE="${2:-bootloader.png}"
+CANVAS_W=800
+CANVAS_H=600
+MARGIN=20
+
+for theme_dir in "$THEMES_DIR"/*/; do
+  theme_name=$(basename "$theme_dir")
+  colors_file="$theme_dir/colors.toml"
+  unlock_png="$theme_dir/unlock.png"
+  output_path="$theme_dir/$OUTPUT_FILE"
+
+  [[ -f $colors_file ]] || { echo "Skipping $theme_name: no colors.toml"; continue; }
+  [[ -f $unlock_png ]] || { echo "Skipping $theme_name: no unlock.png"; continue; }
+
+  theme_read_colors "$colors_file" "$theme_name" || continue
+
+  echo "Generating $theme_name/$OUTPUT_FILE (accent=#$THEME_ACCENT bg=#$THEME_BACKGROUND)"
+
+  max_logo_w=$((CANVAS_W / 2))
+  max_logo_h=$((CANVAS_H / 2))
+  src_logo_w=$(identify -format '%w' "$unlock_png")
+  src_logo_h=$(identify -format '%h' "$unlock_png")
+
+  # For pixel art, use integer scale factors to keep crisp edges.
+  if (( src_logo_w <= max_logo_w && src_logo_h <= max_logo_h )); then
+    # Source fits: find the largest integer upscale multiplier.
+    scale=1
+    while (( src_logo_w * (scale + 1) <= max_logo_w && src_logo_h * (scale + 1) <= max_logo_h )); do
+      scale=$((scale + 1))
+    done
+    logo_w=$((src_logo_w * scale))
+    logo_h=$((src_logo_h * scale))
+  else
+    # Source is larger than the max bounds: scale down preserving aspect ratio.
+    if (( src_logo_w * max_logo_h > src_logo_h * max_logo_w )); then
+      logo_w=$max_logo_w
+      logo_h=$((max_logo_w * src_logo_h / src_logo_w))
+    else
+      logo_h=$max_logo_h
+      logo_w=$((max_logo_h * src_logo_w / src_logo_h))
+    fi
+  fi
+
+  # Scale pixel art with nearest-neighbor to keep crisp edges.
+  # Pre-matte the logo with the background color before scaling so
+  # any residual color in the transparent areas doesn't bleed into
+  # semi-transparent edge pixels (white-halo fix).
+  # Output as PNG24 (no alpha channel) for GRUB2 compatibility.
+  convert -size "${CANVAS_W}x${CANVAS_H}" "xc:#$THEME_BACKGROUND" \
+    \( "$unlock_png" -background "#$THEME_BACKGROUND" -alpha Background \
+       -filter Point -resize "${logo_w}x${logo_h}" \) \
+    -geometry "+${MARGIN}+${MARGIN}" -compose Over -composite \
+    -alpha off \
+    "PNG24:$output_path"
+done

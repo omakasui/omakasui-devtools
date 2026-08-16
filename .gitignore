@@ -1,0 +1,9 @@
+/debian/.debhelper/
+/debian/omakasui-devtools/
+/debian/omakasui-devtools.debhelper.log
+/debian/omakasui-devtools.substvars
+/debian/files
+/debian/debhelper-build-stamp
+/*.deb
+/*.buildinfo
+/*.changes

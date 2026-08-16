@@ -1,0 +1,63 @@
+#!/bin/bash
+# omakasui:summary=Generate themed unlock.png logos for all themes
+# omakasui:args=<themes directory (f.e. ~/.local/share/omakub/themes)> <logo.png path>
+
+if [[ $# -ne 2 ]]; then
+  echo "Usage: omakasui theme generate logo <themes directory> <logo path>" >&2
+  exit 1
+fi
+
+THEMES_DIR="$1"
+LOGO="$2"
+
+if [[ ! -f "$LOGO" ]]; then
+  echo "Error: logo not found at $LOGO" >&2
+  exit 1
+fi
+
+python3 - "$LOGO" "$THEMES_DIR" <<'PYEOF'
+import sys
+import re
+from pathlib import Path
+from PIL import Image
+
+logo_path = sys.argv[1]
+themes_dir = Path(sys.argv[2])
+
+logo = Image.open(logo_path).convert("RGBA")
+pixels = logo.load()
+width, height = logo.size
+
+for theme_dir in sorted(themes_dir.iterdir()):
+  if not theme_dir.is_dir():
+    continue
+
+  colors_file = theme_dir / "colors.toml"
+  if not colors_file.exists():
+    print(f"Skipping {theme_dir.name}: no colors.toml")
+    continue
+
+  content = colors_file.read_text()
+  match = re.search(r'^accent\s*=\s*"#([0-9a-fA-F]{6})"', content, re.MULTILINE)
+  if not match:
+    print(f"Skipping {theme_dir.name}: no accent color found")
+    continue
+
+  hex_color = match.group(1)
+  r = int(hex_color[0:2], 16)
+  g = int(hex_color[2:4], 16)
+  b = int(hex_color[4:6], 16)
+
+  out = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+  out_pixels = out.load()
+
+  for x in range(width):
+    for y in range(height):
+      _, _, _, a = pixels[x, y]
+      out_pixels[x, y] = (r, g, b, a)
+
+  unlock_path = theme_dir / "unlock.png"
+  out.save(unlock_path)
+  print(f"Generated {theme_dir.name}/unlock.png (#{hex_color})")
+
+PYEOF
