@@ -6,13 +6,22 @@ Standards-Version: 4.7.2
 Build-Depends: debhelper-compat (= 13)
 Rules-Requires-Root: no
 
-Package: omakasui-devtools
+Package: omakub-devtools
 Architecture: all
 Depends: ${misc:Depends}, bash, jq
 Recommends: bash-completion, imagemagick, python3, python3-pil
-Description: Development tooling for Omakasui environments
- Provides the omakasui command-line dispatcher and helper scripts used by
- developers working across Omabuntu, Omakub, and Omadeb: theme asset
- generation, preview formatting, and related build tooling.
- .
- Not intended for end-user installation.
+Conflicts: omadeb-devtools
+Description: Development tooling for Omabuntu environments
+ Provides the omakub-devtools command-line dispatcher and helper scripts used by
+ developers working across Omabuntu: theme asset generation, preview formatting,
+ and related build tooling. Not intended for end-user installation.
+
+Package: omadeb-devtools
+Architecture: all
+Depends: ${misc:Depends}, bash, jq
+Recommends: bash-completion, imagemagick, python3, python3-pil
+Conflicts: omakub-devtools
+Description: Development tooling for Omadeb environments
+ Provides the omadeb-devtools command-line dispatcher and helper scripts used by
+ developers working across Omadeb: theme asset generation, preview formatting,
+ and related build tooling. Not intended for end-user installation.

@@ -1,0 +1,2 @@
+usr/lib/omakasui-devtools/bin/devtools usr/bin/omakub-devtools
+usr/share/bash-completion/completions/omakub-devtools usr/share/bash-completion/completions/omadeb-devtools
