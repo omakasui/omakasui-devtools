@@ -1,13 +1,16 @@
-# Bash completion for omakasui.
+# Bash completion for omakub-devtools / omadeb-devtools.
 #
-# Candidates are derived at completion time from `omakasui commands --all --json`,
-# so this file never needs updating when commands are added, renamed, or removed.
+# Candidates are derived at completion time from `<command> commands --all --json`
+# (whichever of the two names was actually invoked), so this file never needs
+# updating when commands are added, renamed, or removed.
 #
 # Debian packaging installs this at:
-#   /usr/share/bash-completion/completions/omakasui
-# where the bash-completion package loads it automatically — no sourcing needed.
+#   /usr/share/bash-completion/completions/omakub-devtools
+# with a same-directory symlink named omadeb-devtools pointing at it, so
+# bash-completion's dynamic loader finds it under either name — no sourcing
+# needed.
 
-_omakasui() {
+_omakasui_devtools() {
   local cur prev words cword
 
   if type _init_completion &>/dev/null; then
@@ -19,18 +22,19 @@ _omakasui() {
     cword=$COMP_CWORD
   fi
 
-  command -v omakasui >/dev/null 2>&1 || return
+  local prog="${words[0]}"
+  command -v "$prog" >/dev/null 2>&1 || return
   command -v jq >/dev/null 2>&1 || return
 
   local -a prefix=("${words[@]:1:cword-1}")
   local routes
-  routes=$(omakasui commands --all --json 2>/dev/null | jq -r '.commands[].routes[]') || return
+  routes=$("$prog" commands --all --json 2>/dev/null | jq -r '.commands[].routes[]') || return
 
   local -a candidates=()
   local route
   while IFS= read -r route; do
     [[ -n $route ]] || continue
-    route="${route#omakasui }"
+    route="${route#"$prog" }"
     local -a rwords=($route)
     local i match=1
 
@@ -53,4 +57,4 @@ _omakasui() {
   COMPREPLY=($(compgen -W "$(printf '%s\n' "${candidates[@]}" | sort -u)" -- "$cur"))
 }
 
-complete -F _omakasui omakasui
+complete -F _omakasui_devtools omakub-devtools omadeb-devtools

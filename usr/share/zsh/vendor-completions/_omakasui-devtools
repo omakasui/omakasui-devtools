@@ -1,28 +1,31 @@
-#compdef omakasui
+#compdef omakub-devtools omadeb-devtools
 #
-# Zsh completion for omakasui.
+# Zsh completion for omakub-devtools / omadeb-devtools.
 #
 # Candidates (and their descriptions) are derived at completion time from
-# `omakasui commands --all --json`, so this file never needs updating when
-# commands are added, renamed, or removed.
+# `<command> commands --all --json` (whichever of the two names was actually
+# invoked), so this file never needs updating when commands are added,
+# renamed, or removed.
 #
 # Debian packaging installs this at:
-#   /usr/share/zsh/vendor-completions/_omakasui
+#   /usr/share/zsh/vendor-completions/_omakasui-devtools
 # which is in fpath by default on Debian/Ubuntu zsh — no sourcing needed,
-# just `compinit` (already run by most zsh setups).
+# just `compinit` (already run by most zsh setups). The filename doesn't
+# need to match the command name; the #compdef line above does that.
 
-_omakasui() {
-  command -v omakasui >/dev/null 2>&1 || return 1
+_omakasui_devtools() {
+  local prog="${words[1]}"
+  command -v "$prog" >/dev/null 2>&1 || return 1
   command -v jq >/dev/null 2>&1 || return 1
 
   local -a prefix
   prefix=("${words[@]:1:$((CURRENT - 2))}")
 
   local json
-  json=$(omakasui commands --all --json 2>/dev/null) || return 1
+  json=$("$prog" commands --all --json 2>/dev/null) || return 1
 
   local -a lines
-  lines=("${(@f)$(jq -r '.commands[] | .routes[] as $r | ($r | sub("^omakasui "; "")) + "\t" + .summary' <<<"$json")}")
+  lines=("${(@f)$(jq -r --arg prog "$prog" '.commands[] | .routes[] as $r | ($r | sub("^" + $prog + " "; "")) + "\t" + .summary' <<<"$json")}")
 
   local -a candidates
   local line route summary
@@ -48,12 +51,12 @@ _omakasui() {
 
   # `commands` is a builtin subcommand, not backed by a omakasui-* binary,
   # so it never shows up in the JSON route list.
-  (( ${#prefix} == 0 )) && candidates+=("commands:List commands known to the Omakasui command center")
+  (( ${#prefix} == 0 )) && candidates+=("commands:List commands known to the $prog command center")
 
   local -aU uniq_candidates
   uniq_candidates=(${(u)candidates})
 
-  _describe -t omakasui-commands 'omakasui command' uniq_candidates
+  _describe -t omakasui-devtools-commands "$prog command" uniq_candidates
 }
 
-_omakasui "$@"
+_omakasui_devtools "$@"
