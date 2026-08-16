@@ -5,23 +5,30 @@ Maintainer: Luca Pattocchio <info@lucapattocchio.dev>
 Standards-Version: 4.7.2
 Build-Depends: debhelper-compat (= 13)
 Rules-Requires-Root: no
+Homepage: https://github.com/omakasui/omakasui-devtools
+
+Package: omakasui-devtools
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}, jq, imagemagick, python3-pil
+Recommends: bash-completion
+Replaces: omakub-devtools (<< 0.0.3~), omadeb-devtools (<< 0.0.3~)
+Breaks: omakub-devtools (<< 0.0.3~), omadeb-devtools (<< 0.0.3~)
+Description: Development tooling for Omakasui environments (shared payload)
+ Provides the devtools command-line dispatcher and helper scripts used by
+ developers working across Omakasui environments: theme asset generation,
+ preview formatting, and related build tooling. Install omakub-devtools or
+ omadeb-devtools to get the project-specific command name.
+ Not intended for end-user installation.
 
 Package: omakub-devtools
 Architecture: all
-Depends: ${misc:Depends}, bash, jq
-Recommends: bash-completion, imagemagick, python3, python3-pil
-Conflicts: omadeb-devtools
+Depends: ${misc:Depends}, omakasui-devtools (= ${binary:Version})
 Description: Development tooling for Omabuntu environments
- Provides the omakub-devtools command-line dispatcher and helper scripts used by
- developers working across Omabuntu: theme asset generation, preview formatting,
- and related build tooling. Not intended for end-user installation.
+ Provides the omakub-devtools command. Not intended for end-user installation.
 
 Package: omadeb-devtools
 Architecture: all
-Depends: ${misc:Depends}, bash, jq
-Recommends: bash-completion, imagemagick, python3, python3-pil
-Conflicts: omakub-devtools
+Depends: ${misc:Depends}, omakasui-devtools (= ${binary:Version})
 Description: Development tooling for Omadeb environments
- Provides the omadeb-devtools command-line dispatcher and helper scripts used by
- developers working across Omadeb: theme asset generation, preview formatting,
- and related build tooling. Not intended for end-user installation.
+ Provides the omadeb-devtools command.Not intended for end-user installation.
