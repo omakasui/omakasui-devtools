@@ -1,3 +1,17 @@
+omakasui-devtools (0.0.3) unstable; urgency=medium
+
+  * Ship the payload once in omakasui-devtools; omakub-devtools and
+    omadeb-devtools are now thin packages providing only their command name,
+    and no longer conflict with each other.
+  * Promote imagemagick and python3-pil to Depends.
+  * Add set -euo pipefail to the theme scripts.
+  * theme format previews
+  * anchor the colors.toml lookups so accent_dim and background_alt are
+    no longer matched instead of accent and background.
+  * Only list command groups that ship a binary in --help.
+
+ -- Luca Pattocchio <info@lucapattocchio.dev>  Mon, 17 Aug 2026 00:35:00 +0200
+
 omakasui-devtools (0.0.2) unstable; urgency=medium
 
   * Removed omakasui- suffix to make it versatile across setups
