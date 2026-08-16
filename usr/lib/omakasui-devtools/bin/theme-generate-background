@@ -1,21 +1,21 @@
 #!/bin/bash
-# omakasui:summary=Generate themed preview-unlock.png previews for all themes
-# omakasui:args=<themes directory (f.e. ~/.local/share/omakub/themes)>
+# omakasui:summary=Generate themed background.png wallpapers for all themes
+# omakasui:args=<themes directory (f.e. ~/.local/share/omakub/themes)> [output file name, default: background.png]
 
 set -o pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")" && pwd)
 source "$SCRIPT_DIR/lib/theme-colors.sh"
 
-if [[ $# -ne 1 ]]; then
-  echo "Usage: omakasui theme generate preview <themes directory>" >&2
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+  echo "Usage: ${OMAKASUI_PROG_NAME:-$(basename -- "$0")} theme generate background <themes directory> [output file name]" >&2
   exit 1
 fi
 
 THEMES_DIR="$1"
-OUTPUT_FILE="preview-unlock.png"
-CANVAS_W=1920
-CANVAS_H=1080
+OUTPUT_FILE="${2:-background.png}"
+CANVAS_W=3840
+CANVAS_H=2160
 
 for theme_dir in "$THEMES_DIR"/*/; do
   theme_name=$(basename "$theme_dir")

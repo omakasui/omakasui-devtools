@@ -3,7 +3,7 @@
 # omakasui:args=<themes directory (f.e. ~/.local/share/omakub/themes)>
 
 if [[ $# -ne 1 ]]; then
-  echo "Usage: omakasui theme format previews <themes directory>" >&2
+  echo "Usage: ${OMAKASUI_PROG_NAME:-$(basename -- "$0")} theme format previews <themes directory>" >&2
   exit 1
 fi
 

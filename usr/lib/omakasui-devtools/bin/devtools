@@ -2,7 +2,10 @@
 
 set -o pipefail
 
-OMAKASUI_BIN_DIR=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")" && pwd)
+OMAKASUI_REAL_SELF=$(readlink -f -- "${BASH_SOURCE[0]}")
+OMAKASUI_BIN_DIR=$(cd -- "$(dirname -- "$OMAKASUI_REAL_SELF")" && pwd)
+OMAKASUI_SELF_BINARY=$(basename -- "$OMAKASUI_REAL_SELF")
+export OMAKASUI_PROG_NAME=$(basename -- "$0")
 METADATA_SCAN_LIMIT=80
 
 COMMAND_KEYS=()
@@ -196,10 +199,10 @@ register_command() {
     fi
   done <"$file"
 
-  local stem="${file_binary#omakasui-}"
+  local stem="$file_binary"
   local fallback_group="$stem"
   local fallback_name=""
-  local fallback_route="omakasui ${stem//-/ }"
+  local fallback_route="$OMAKASUI_PROG_NAME ${stem//-/ }"
 
   if [[ $stem == *-* ]]; then
     fallback_group="${stem%%-*}"
@@ -212,7 +215,7 @@ register_command() {
   [[ $name_seen != "true" ]] && name="$fallback_name"
   [[ -z $summary && -n $fallback_summary ]] && summary="$fallback_summary"
   [[ -z $summary ]] && summary="Run the ${stem//-/ } command"
-  local route="omakasui $group"
+  local route="$OMAKASUI_PROG_NAME $group"
   if [[ -n $name ]]; then
     route+=" $name"
   fi
@@ -263,8 +266,9 @@ register_command() {
 load_commands() {
   local file=""
 
-  for file in "$OMAKASUI_BIN_DIR"/omakasui-*; do
+  for file in "$OMAKASUI_BIN_DIR"/*; do
     [[ -f $file && -x $file ]] || continue
+    [[ "${file##*/}" == "$OMAKASUI_SELF_BINARY" ]] && continue
     register_command "$file"
   done
 
@@ -292,7 +296,7 @@ group_has_child_commands() {
   local group="$1"
   local file=""
 
-  for file in "$OMAKASUI_BIN_DIR/omakasui-$group"-*; do
+  for file in "$OMAKASUI_BIN_DIR/$group"-*; do
     [[ -f $file && -x $file ]] && return 0
   done
 
@@ -302,7 +306,7 @@ group_has_child_commands() {
 group_has_binary_commands() {
   local group="$1"
 
-  [[ -x $OMAKASUI_BIN_DIR/omakasui-$group ]] && return 0
+  [[ -x $OMAKASUI_BIN_DIR/$group ]] && return 0
   group_has_child_commands "$group"
 }
 
@@ -323,11 +327,11 @@ load_group_commands() {
   local group="$1"
   local file=""
 
-  if [[ -f $OMAKASUI_BIN_DIR/omakasui-$group && -x $OMAKASUI_BIN_DIR/omakasui-$group ]]; then
-    register_command "$OMAKASUI_BIN_DIR/omakasui-$group"
+  if [[ -f $OMAKASUI_BIN_DIR/$group && -x $OMAKASUI_BIN_DIR/$group ]]; then
+    register_command "$OMAKASUI_BIN_DIR/$group"
   fi
 
-  for file in "$OMAKASUI_BIN_DIR/omakasui-$group"-*; do
+  for file in "$OMAKASUI_BIN_DIR/$group"-*; do
     [[ -f $file && -x $file ]] || continue
     register_command "$file"
   done
@@ -344,9 +348,9 @@ resolve_direct_route() {
   local candidate=""
 
   for (( prefix_count = argc; prefix_count >= 1; prefix_count-- )); do
-    route="omakasui $(join_words " " "${args[@]:0:prefix_count}")"
+    route="$OMAKASUI_PROG_NAME $(join_words " " "${args[@]:0:prefix_count}")"
 
-    binary="omakasui-$(join_words "-" "${args[@]:0:prefix_count}")"
+    binary="$(join_words "-" "${args[@]:0:prefix_count}")"
     candidate="$OMAKASUI_BIN_DIR/$binary"
     if [[ -f $candidate && -x $candidate ]]; then
       DIRECT_RESOLVED_BINARY="$binary"
@@ -373,7 +377,7 @@ sorted_keys() {
 
 fallback_group_for_key() {
   local key="$1"
-  local fallback="${COMMAND_FALLBACK_ROUTE[$key]#omakasui }"
+  local fallback="${COMMAND_FALLBACK_ROUTE[$key]#$OMAKASUI_PROG_NAME }"
 
   printf '%s' "${fallback%% *}"
 }
@@ -464,41 +468,34 @@ show_group_list() {
 }
 
 show_main_help() {
-  cat <<'EOF'
-Omakasui command center
+  cat <<EOF
+Omakasui developer tooling — $OMAKASUI_PROG_NAME
 
 Usage:
-  omakasui <command> [args...]
-  omakasui commands [--all] [--json] [--check]
-  omakasui <group> --help
-  omakasui <group> <command> --help
-
-Common commands:
-  omakasui update              Update Omakasui and system packages
-  omakasui theme list          List available themes
-  omakasui theme set <name>    Apply a theme
-  omakasui font list           List available fonts
-  omakasui debug               Print debugging information
+  $OMAKASUI_PROG_NAME <command> [args...]
+  $OMAKASUI_PROG_NAME commands [--all] [--json] [--check]
+  $OMAKASUI_PROG_NAME <group> --help
+  $OMAKASUI_PROG_NAME <group> <command> --help
 
 Groups:
 EOF
   show_group_list
-  cat <<'EOF'
+  cat <<EOF
 
 Discovery:
-  omakasui commands            List all commands
-  omakasui commands --all      Include commands explicitly marked hidden
-  omakasui commands --json     Machine-readable command list
-  omakasui commands --check    Validate command metadata and routes
+  $OMAKASUI_PROG_NAME commands            List all commands
+  $OMAKASUI_PROG_NAME commands --all      Include commands explicitly marked hidden
+  $OMAKASUI_PROG_NAME commands --json     Machine-readable command list
+  $OMAKASUI_PROG_NAME commands --check    Validate command metadata and routes
 EOF
 }
 
 show_commands_help() {
-  cat <<'EOF'
+  cat <<EOF
 Usage:
-  omakasui commands [--all] [--json] [--markdown] [--check]
+  $OMAKASUI_PROG_NAME commands [--all] [--json] [--markdown] [--check]
 
-List commands known to the Omakasui command center.
+List commands known to the $OMAKASUI_PROG_NAME command center.
 
 Options:
   --all       Include commands explicitly marked hidden
@@ -721,7 +718,7 @@ parse_commands_args() {
       return 0
       ;;
     *)
-      echo "Unknown option for omakasui commands: $1" >&2
+      echo "Unknown option for $OMAKASUI_PROG_NAME commands: $1" >&2
       show_commands_help >&2
       return 2
       ;;
@@ -774,7 +771,7 @@ show_group_help() {
   if [[ -n $rows ]]; then
     print_command_table "$rows"
   else
-    echo "  No documented commands found. Try: omakasui commands --all"
+    echo "  No documented commands found. Try: $OMAKASUI_PROG_NAME commands --all"
   fi
 }
 
@@ -793,7 +790,7 @@ show_prefix_help() {
 
   [[ -n $rows ]] || return 1
 
-  echo "${prefix#omakasui } commands:"
+  echo "${prefix#$OMAKASUI_PROG_NAME } commands:"
   print_command_table "$rows"
 }
 
@@ -874,7 +871,7 @@ resolve_route() {
   local key=""
 
   for (( prefix_count = argc; prefix_count >= 1; prefix_count-- )); do
-    route="omakasui $(join_words " " "${args[@]:0:prefix_count}")"
+    route="$OMAKASUI_PROG_NAME $(join_words " " "${args[@]:0:prefix_count}")"
     key="${ROUTE_TO_KEY[$route]}"
 
     if [[ -n $key ]]; then
@@ -893,7 +890,7 @@ suggest_command() {
   local candidate=""
 
   for candidate in "${!ROUTE_TO_KEY[@]}"; do
-    candidate="${candidate#omakasui }"
+    candidate="${candidate#$OMAKASUI_PROG_NAME }"
     if [[ $candidate == "$first"* ]]; then
       printf '%s' "${candidate%% *}"
       return 0
@@ -1014,16 +1011,16 @@ dispatch_or_help() {
     return 0
   fi
 
-  if show_prefix_help "omakasui ${args[*]}"; then
+  if show_prefix_help "$OMAKASUI_PROG_NAME ${args[*]}"; then
     return 0
   fi
 
-  echo "Unknown Omakasui command: omakasui ${args[*]}" >&2
+  echo "Unknown $OMAKASUI_PROG_NAME command: $OMAKASUI_PROG_NAME ${args[*]}" >&2
   suggestion=$(suggest_command "${args[0]}")
   if [[ -n $suggestion ]]; then
-    echo "Did you mean: omakasui $suggestion ?" >&2
+    echo "Did you mean: $OMAKASUI_PROG_NAME $suggestion ?" >&2
   fi
-  echo "Run 'omakasui commands --all' to discover available commands." >&2
+  echo "Run '$OMAKASUI_PROG_NAME commands --all' to discover available commands." >&2
   return 127
 }
 

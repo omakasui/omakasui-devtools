@@ -8,7 +8,7 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")" && pw
 source "$SCRIPT_DIR/lib/theme-colors.sh"
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
-  echo "Usage: omakasui theme generate bootloader <themes directory> [output file name]" >&2
+  echo "Usage: ${OMAKASUI_PROG_NAME:-$(basename -- "$0")} theme generate bootloader <themes directory> [output file name]" >&2
   exit 1
 fi
 

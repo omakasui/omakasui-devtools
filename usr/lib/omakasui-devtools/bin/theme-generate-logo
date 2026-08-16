@@ -3,7 +3,7 @@
 # omakasui:args=<themes directory (f.e. ~/.local/share/omakub/themes)> <logo.png path>
 
 if [[ $# -ne 2 ]]; then
-  echo "Usage: omakasui theme generate logo <themes directory> <logo path>" >&2
+  echo "Usage: ${OMAKASUI_PROG_NAME:-$(basename -- "$0")} theme generate logo <themes directory> <logo path>" >&2
   exit 1
 fi
 
