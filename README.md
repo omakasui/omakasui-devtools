@@ -3,10 +3,6 @@
 Development tooling for people working across the Omakasui ecosystem.
 Everything here is aimed at developers of those projects, not for the end user.
 
-Installs as either `omakub-devtools` or `omadeb-devtools` (same content,
-mutually exclusive packages — pick whichever matches your environment). Both
-commands behave identically.
-
 ## Commands
 
 ```
