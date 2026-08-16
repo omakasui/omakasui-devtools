@@ -1,3 +1,9 @@
+omakasui-devtools (0.0.2) unstable; urgency=medium
+
+  * Removed omakasui- suffix to make it versatile across setups
+
+ -- Luca Pattocchio <info@lucapattocchio.dev>  Sun, 16 Aug 2026 12:30:42 +0200
+
 omakasui-devtools (0.0.1) unstable; urgency=medium
 
   * Initial release.
