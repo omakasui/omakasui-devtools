@@ -14,8 +14,9 @@ theme_read_colors() {
   THEME_ACCENT=""
   THEME_BACKGROUND=""
 
-  accent=$(grep -m1 '^accent' "$colors_file" | sed 's/.*=\s*"\(#[^"]*\)".*/\1/')
-  background=$(grep -m1 '^background' "$colors_file" | sed 's/.*=\s*"\(#[^"]*\)".*/\1/')
+  # accent_dim / background_alt must not match first.
+  accent=$(grep -m1 -E '^accent[[:space:]]*=' "$colors_file" | sed 's/.*=[[:space:]]*"\(#[^"]*\)".*/\1/')
+  background=$(grep -m1 -E '^background[[:space:]]*=' "$colors_file" | sed 's/.*=[[:space:]]*"\(#[^"]*\)".*/\1/')
 
   if [[ -z $accent || -z $background ]]; then
     echo "Skipping $theme_name: missing accent or background color"
