@@ -2,6 +2,3 @@
 
 %:
 	dh $@
-
-override_dh_auto_install:
-	cp -a --parents usr debian/omakasui-devtools/
