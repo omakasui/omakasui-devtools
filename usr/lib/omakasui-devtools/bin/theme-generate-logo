@@ -2,6 +2,8 @@
 # omakasui:summary=Generate themed unlock.png logos for all themes
 # omakasui:args=<themes directory (f.e. ~/.local/share/omakub/themes)> <logo.png path>
 
+set -euo pipefail
+
 if [[ $# -ne 2 ]]; then
   echo "Usage: ${OMAKASUI_PROG_NAME:-$(basename -- "$0")} theme generate logo <themes directory> <logo path>" >&2
   exit 1

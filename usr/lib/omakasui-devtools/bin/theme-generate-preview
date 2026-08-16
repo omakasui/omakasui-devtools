@@ -2,7 +2,7 @@
 # omakasui:summary=Generate themed preview-unlock.png previews for all themes
 # omakasui:args=<themes directory (f.e. ~/.local/share/omakub/themes)>
 
-set -o pipefail
+set -euo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")" && pwd)
 source "$SCRIPT_DIR/lib/theme-colors.sh"

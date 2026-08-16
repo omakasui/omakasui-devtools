@@ -2,6 +2,8 @@
 # omakasui:summary=Resize and optimize preview images across all themes
 # omakasui:args=<themes directory (f.e. ~/.local/share/omakub/themes)>
 
+set -euo pipefail
+
 if [[ $# -ne 1 ]]; then
   echo "Usage: ${OMAKASUI_PROG_NAME:-$(basename -- "$0")} theme format previews <themes directory>" >&2
   exit 1
@@ -16,7 +18,12 @@ for dir in "$THEMES_DIR"/*/; do
   for img_type in "${IMAGE_TYPES[@]}"; do
     if [[ -f "${dir}${img_type}" ]]; then
       echo "Processing: ${dir}${img_type}"
-      convert "${dir}${img_type}" -resize 1800x -strip -interlace Plane -quality 85 "${dir}${img_type%.*}.png"
+      # A failed convert must not truncate the original.
+      tmp=$(mktemp "${dir}.${img_type}.XXXXXX")
+      trap 'rm -f "$tmp"' EXIT
+      convert "${dir}${img_type}" -resize 1800x -strip -interlace Plane -quality 85 "png:$tmp"
+      mv "$tmp" "${dir}${img_type}"
+      trap - EXIT
     else
       echo "Skipped (no ${img_type}): $dir"
     fi

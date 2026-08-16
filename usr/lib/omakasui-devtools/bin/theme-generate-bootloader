@@ -2,7 +2,7 @@
 # omakasui:summary=Generate themed bootloader.png backgrounds for all themes (using unlock.png as logo)
 # omakasui:args=<themes directory (f.e. ~/.local/share/omakub/themes)> [output file name, default: bootloader.png]
 
-set -o pipefail
+set -euo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")" && pwd)
 source "$SCRIPT_DIR/lib/theme-colors.sh"
