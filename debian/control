@@ -1,7 +1,7 @@
 Source: omakasui-devtools
 Section: devel
 Priority: optional
-Maintainer: omakasui <packages@omakasui.org>
+Maintainer: Luca Pattocchio <info@lucapattocchio.dev>
 Standards-Version: 4.7.2
 Build-Depends: debhelper-compat (= 13)
 Rules-Requires-Root: no
